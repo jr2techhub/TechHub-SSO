@@ -86,7 +86,7 @@ builder.Services
         // En desarrollo (HTTP local) AllowOnlySecureCookies permitiría la cookie;
         // Always la descartaría silenciosamente en el navegador y rompería el SSO.
         // En producción se mantiene Always: la cookie solo viaja por HTTPS.
-        options.Cookie.SecurePolicy = CookieSecurePolicy.AllowOnlySecureCookies;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.None;
 #else
         options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
 #endif

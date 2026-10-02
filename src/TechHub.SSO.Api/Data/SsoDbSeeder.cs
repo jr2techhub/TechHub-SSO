@@ -22,6 +22,7 @@ public static class SsoDbSeeder
             await context.Database.MigrateAsync();
 
         await SeedTenantAsync(context, logger);
+        await SeedUsersAsync(context, logger);
         await SeedApplicationsAsync(scope.ServiceProvider, logger);
 #if DEBUG
         // En desarrollo también se permite el callback local HTTP de la SPA (ver README).
@@ -38,14 +39,24 @@ public static class SsoDbSeeder
         var devUri = new Uri("http://localhost:3000/callback");
         var devLogoutUri = new Uri("http://localhost:3000/signout-callback-oidc");
 
-        var existing = await manager.GetRedirectUrisAsync(app);
+        var existing = (await manager.GetRedirectUrisAsync(app)).ToList();
+        var existingLogout = (await manager.GetPostLogoutRedirectUrisAsync(app)).ToList();
         if (!existing.Contains(devUri.ToString()))
         {
-            await manager.UpdateAsync(app, descriptor =>
+            var descriptor = new OpenIddictApplicationDescriptor
             {
-                descriptor.RedirectUris.Add(devUri);
-                descriptor.PostLogoutRedirectUris.Add(devLogoutUri);
-            });
+                ClientId = "techhub-web",
+                ConsentType = ConsentTypes.Implicit,
+                DisplayName = "TechHub Web Client",
+                ClientType = ClientTypes.Public,
+            };
+            foreach (var uri in existing.Select(u => new Uri(u)).Append(devUri))
+                descriptor.RedirectUris.Add(uri);
+            foreach (var uri in existingLogout.Select(u => new Uri(u)).Append(devLogoutUri))
+                descriptor.PostLogoutRedirectUris.Add(uri);
+
+            // UpdateAsync con descriptor reemplaza los valores: conservamos los existentes.
+            await manager.UpdateAsync(app, descriptor);
             logger.LogInformation("Redirect URI de desarrollo añadido a techhub-web: {Uri}", devUri);
         }
     }
@@ -70,6 +81,52 @@ public static class SsoDbSeeder
         context.Tenants.Add(demoTenant);
         await context.SaveChangesAsync();
         logger.LogInformation("Tenant demo sembrado: {Domain}", demoTenant.Domain);
+    }
+
+    /// <summary>
+    /// Usuarios de prueba para el tenant demo (solo desarrollo).
+    /// Contraseñas: Admin123! / User123! — NO usar estas credenciales en producción.
+    /// </summary>
+    private static async Task SeedUsersAsync(SsoDbContext context, ILogger logger)
+    {
+        if (await context.ApplicationUsers.AnyAsync())
+            return;
+
+        var tenant = await context.Tenants.FirstOrDefaultAsync();
+        if (tenant is null) return;
+
+        var users = new[]
+        {
+            new ApplicationUser
+            {
+                Id = Guid.NewGuid(),
+                Email = "admin@demo.techhub.com",
+                PasswordHash = TechHub.SSO.Api.Services.PasswordHasher.Hash("Admin123!"),
+                FirstName = "Ada",
+                LastName = "Lovelace",
+                TenantId = tenant.Id,
+                IsEmailConfirmed = true,
+                Roles = "admin",
+                CreatedAt = DateTime.UtcNow
+            },
+            new ApplicationUser
+            {
+                Id = Guid.NewGuid(),
+                Email = "user@demo.techhub.com",
+                PasswordHash = TechHub.SSO.Api.Services.PasswordHasher.Hash("User123!"),
+                FirstName = "Alan",
+                LastName = "Turing",
+                TenantId = tenant.Id,
+                IsEmailConfirmed = true,
+                Roles = "user",
+                CreatedAt = DateTime.UtcNow
+            }
+        };
+
+        context.ApplicationUsers.AddRange(users);
+        await context.SaveChangesAsync();
+        logger.LogInformation("Usuarios de prueba sembrados: {Emails}",
+            string.Join(", ", users.Select(u => u.Email)));
     }
 
     private static async Task SeedApplicationsAsync(IServiceProvider services, ILogger logger)
