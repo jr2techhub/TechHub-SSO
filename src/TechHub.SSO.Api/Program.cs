@@ -94,15 +94,14 @@ builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
     options.AddPolicy("auth", httpContext =>
-        System.Threading.RateLimiting.PartitionedRateLimiter.Create<HttpContext, string>(
-            httpContext => System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
-                partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                factory: _ => new FixedWindowRateLimiterOptions
-                {
-                    PermitLimit = 10,                    // máx. 10 peticiones...
-                    Window = TimeSpan.FromMinutes(1),    // ...por minuto y por IP origen
-                    AutoReplenishment = true
-                })));
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,                    // máx. 10 peticiones...
+                Window = TimeSpan.FromMinutes(1),    // ...por minuto y por IP origen
+                AutoReplenishment = true
+            }));
 });
 
 // ── CORS: lista blanca configurable (nunca AllowAnyOrigin con credenciales) ──

@@ -6,6 +6,7 @@ using OpenIddict.Abstractions;
 using OpenIddict.Server;
 using OpenIddict.Server.AspNetCore;
 using OpenIddict.Validation.AspNetCore;
+using Microsoft.AspNetCore; // OpenIddictServerAspNetCoreHelpers (GetOpenIddictServerRequest)
 using System.Collections.Immutable;
 using System.Security.Claims;
 using static OpenIddict.Abstractions.OpenIddictConstants;
@@ -49,8 +50,8 @@ public class ConnectController : Controller
         CopyClaim(User, identity, Claims.GivenName);
         CopyClaim(User, identity, Claims.FamilyName);
         CopyClaim(User, identity, CustomClaims.TenantId);
-        foreach (var role in User.FindAll(Claims.Role))
-            AddDualClaim(identity, role.Type, role.Value);
+        foreach (var role in User.FindAll(ClaimTypes.Role))
+            AddDualClaim(identity, Claims.Role, role.Value);
 
         var principal = new ClaimsPrincipal(identity);
         principal.SetScopes(request.GetScopes());
@@ -140,7 +141,11 @@ public class ConnectController : Controller
     private static void AddDualClaim(ClaimsIdentity target, string type, string? value)
     {
         if (!string.IsNullOrEmpty(value))
-            AddDualClaim(target, type, value);
+        {
+            target.AddClaim(new Claim(type, value));
+            // Las claims sin destino explícito no se incluyen en ningún token;
+            // los destinos se asignan en bloque sobre principal.Claims más abajo.
+        }
     }
 
     /// <summary>Claims identificativos van a ambos tokens; el resto solo al access token.</summary>
