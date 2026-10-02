@@ -1,0 +1,36 @@
+# Infraestructura local para TechHub-SSO
+#   PostgreSQL (backend por defecto):  docker compose up -d postgres
+#   SQL Server (alternativa preparada): docker compose --profile mssql up -d mssql
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: techhub-postgres
+    environment:
+      POSTGRES_DB: techhub_sso
+      POSTGRES_USER: techhub
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U techhub -d techhub_sso"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mssql:
+    profiles: ["mssql"]
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: techhub-mssql
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "ChangeMe_Dev_Pwd_123!"
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssqldata:/var/opt/mssql
+
+volumes:
+  pgdata:
+  mssqldata:

@@ -15,6 +15,9 @@ public static class DatabaseProviderFactory
     /// Configura el <see cref="DbContextOptionsBuilder"/> según la clave
     /// "Database:Provider" de la configuración (valores: "Postgres" | "SqlServer").
     /// Si no se especifica, usa PostgreSQL.
+    /// NOTA: las migraciones EF Core incluidas son específicas de PostgreSQL
+    /// (carpeta Migrations/Postgres). Para SQL Server genere sus propias
+    /// migraciones una única vez con: SSO_DB_PROVIDER=SqlServer dotnet ef migrations add ...
     /// </summary>
     public static DbContextOptionsBuilder UseConfiguredProvider(
         this DbContextOptionsBuilder optionsBuilder,

@@ -16,7 +16,8 @@ public static class SsoDbSeeder
         using var scope = services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<SsoDbContext>();
 
-        // Migraciones: soportan ambos proveedores (PostgreSQL y SQL Server).
+        // Migraciones incluidas: específicas de PostgreSQL (Migrations/Postgres).
+        // Si usa SqlServer, genere primero sus migraciones propias (ver README).
         if (context.Database.IsRelational())
             await context.Database.MigrateAsync();
 
