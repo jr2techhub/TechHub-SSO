@@ -101,10 +101,18 @@ if (!string.IsNullOrEmpty(redisConnection))
 builder.Services.AddAuthorization();
 
 // ── Aplicación y servicios ───────────────────────────────────────────────────
-builder.Services.AddControllers();
+// El formulario de autenticación VIVE en este servidor (patrón Hosted Login /
+// Authorization Server UI): los clientes OIDC solo hacen challenge-auth con
+// returnurl; nunca reciben ni procesan credenciales.
+builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IAuthService, AuthService>();
+// Caché de dos capas usada por AuthService (L1 memory siempre; L2 Redis opcional).
+builder.Services.AddSingleton<IAuthCache>(sp =>
+    new AuthCache(
+        sp.GetRequiredService<Microsoft.Extensions.Caching.Memory.IMemoryCache>(),
+        sp.GetService<Microsoft.Extensions.Caching.Distributed.IDistributedCache>()));
 
 // ── Rate limiting para endpoints de autenticación ────────────────────────────
 builder.Services.AddRateLimiter(options =>
