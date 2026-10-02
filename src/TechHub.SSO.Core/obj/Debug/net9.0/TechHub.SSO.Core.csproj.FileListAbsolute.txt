@@ -9,3 +9,4 @@
 /workspace/src/TechHub.SSO.Core/obj/Debug/net9.0/refint/TechHub.SSO.Core.dll
 /workspace/src/TechHub.SSO.Core/obj/Debug/net9.0/TechHub.SSO.Core.pdb
 /workspace/src/TechHub.SSO.Core/obj/Debug/net9.0/ref/TechHub.SSO.Core.dll
+/workspace/src/TechHub.SSO.Core/obj/Debug/net9.0/TechHub.SSO.Core.sourcelink.json

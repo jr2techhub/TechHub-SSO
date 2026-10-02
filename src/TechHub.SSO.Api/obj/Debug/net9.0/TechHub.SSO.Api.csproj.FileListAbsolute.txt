@@ -183,3 +183,4 @@
 /workspace/src/TechHub.SSO.Api/bin/Debug/net9.0/StackExchange.Redis.dll
 /workspace/src/TechHub.SSO.Api/obj/Debug/net9.0/TechHub.SSO.Api.RazorAssemblyInfo.cache
 /workspace/src/TechHub.SSO.Api/obj/Debug/net9.0/TechHub.SSO.Api.RazorAssemblyInfo.cs
+/workspace/src/TechHub.SSO.Api/obj/Debug/net9.0/TechHub.SSO.Api.sourcelink.json
