@@ -178,3 +178,6 @@
 /workspace/src/TechHub.SSO.Api/obj/Debug/net9.0/TechHub.SSO.Api.pdb
 /workspace/src/TechHub.SSO.Api/obj/Debug/net9.0/TechHub.SSO.Api.genruntimeconfig.cache
 /workspace/src/TechHub.SSO.Api/obj/Debug/net9.0/ref/TechHub.SSO.Api.dll
+/workspace/src/TechHub.SSO.Api/bin/Debug/net9.0/Microsoft.Extensions.Caching.StackExchangeRedis.dll
+/workspace/src/TechHub.SSO.Api/bin/Debug/net9.0/Pipelines.Sockets.Unofficial.dll
+/workspace/src/TechHub.SSO.Api/bin/Debug/net9.0/StackExchange.Redis.dll

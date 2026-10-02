@@ -79,7 +79,24 @@ builder.Services
         options.Cookie.Name = "techhub_sso_session";
         options.Cookie.HttpOnly = true;
         options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        // Anti-CSRF: SameSite=Lax es el valor correcto para flujos OIDC redirect-based
+        // (la cookie viaja en GET de redirección pero NO en POSTs cross-site).
+        options.Cookie.SameSite = SameSiteMode.Lax;
     });
+
+// ── Caché (rendimiento) ──────────────────────────────────────────────────────
+// Capa L1: memory cache siempre disponible.
+builder.Services.AddMemoryCache();
+// Capa L2 opcional: Redis distribuido si se define "Redis:ConnectionString".
+var redisConnection = builder.Configuration["Redis:ConnectionString"];
+if (!string.IsNullOrEmpty(redisConnection))
+{
+    builder.Services.AddStackExchangeRedisCache(options =>
+    {
+        options.Configuration = redisConnection;
+        options.InstanceName = "techhub-sso:";
+    });
+}
 
 builder.Services.AddAuthorization();
 
