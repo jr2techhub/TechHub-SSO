@@ -1,6 +1,7 @@
 @model TechHub.SSO.Api.Models.LoginViewModel
 @{
     ViewData["Title"] = "Inicio de sesión";
+    var returnUrlQuery = Model.ReturnUrl is null ? "" : "?returnurl=" + Uri.EscapeDataString(Model.ReturnUrl);
 }
 
 <h1>Iniciar sesión en TechHub</h1>
@@ -11,19 +12,22 @@
     <div class="error" role="alert">@error</div>
 }
 
-<form method="post" action="/account/login">
+<form method="post" asp-action="Login" novalidate>
     @Html.AntiForgeryToken()
     <input type="hidden" asp-for="TenantId" />
     <input type="hidden" asp-for="ReturnUrl" />
 
-    <label for="email">Email</label>
-    <input type="email" id="email" name="Email" autocomplete="username" required maxlength="256"
-           value="@Model.Email" />
+    <label for="Email">Email</label>
+    <input type="email" id="Email" name="Email" value="@Model.Email" autocomplete="username"
+           required maxlength="256" placeholder="usted@miempresa.com" autofocus />
+    <span class="field-error">@Html.ValidationMessageFor(m => m.Email)</span>
 
-    <label for="password">Contraseña</label>
-    <input type="password" id="password" name="Password" autocomplete="current-password" required maxlength="128" />
+    <label for="Password">Contraseña</label>
+    <input type="password" id="Password" name="Password" autocomplete="current-password"
+           required maxlength="128" placeholder="••••••••" />
+    <span class="field-error">@Html.ValidationMessageFor(m => m.Password)</span>
 
     <button type="submit">Entrar</button>
 </form>
 
-<p class="switch">¿No tiene cuenta? <a href="/account/register@(Model.ReturnUrl is null ? "" : "?returnurl=" + Uri.EscapeDataString(Model.ReturnUrl))">Crear organización</a></p>
+<p class="switch">¿No tiene cuenta? <a href="@($"/account/register{returnUrlQuery}")">Crear organización</a></p>
