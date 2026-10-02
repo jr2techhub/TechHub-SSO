@@ -1,0 +1,29 @@
+@model TechHub.SSO.Api.Models.LoginViewModel
+@{
+    ViewData["Title"] = "Inicio de sesión";
+}
+
+<h1>Iniciar sesión en TechHub</h1>
+<p class="sub">Autenticación centralizada del stack TechHub. Sus credenciales solo se envían a este servidor.</p>
+
+@if (ViewData["Error"] is string error)
+{
+    <div class="error" role="alert">@error</div>
+}
+
+<form method="post" action="/account/login">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="TenantId" />
+    <input type="hidden" asp-for="ReturnUrl" />
+
+    <label for="email">Email</label>
+    <input type="email" id="email" name="Email" autocomplete="username" required maxlength="256"
+           value="@Model.Email" />
+
+    <label for="password">Contraseña</label>
+    <input type="password" id="password" name="Password" autocomplete="current-password" required maxlength="128" />
+
+    <button type="submit">Entrar</button>
+</form>
+
+<p class="switch">¿No tiene cuenta? <a href="/account/register@(Model.ReturnUrl is null ? "" : "?returnurl=" + Uri.EscapeDataString(Model.ReturnUrl))">Crear organización</a></p>

@@ -25,6 +25,7 @@ public interface IAuthService
     Task<AuthResult> RegisterAsync(string email, string password, string firstName, string lastName, string tenantName, string domain);
     Task<AuthResult> ValidateCredentialsAsync(string email, Guid tenantId, string password);
     Task<ApplicationUser?> GetUserByEmailAsync(string email, Guid tenantId);
+    Task<Tenant?> FindTenantByDomainAsync(string domain);
     Task<bool> IsTrialExpiredAsync(Guid tenantId);
     Task<bool> UpgradeTenantAsync(Guid tenantId, PlanType newPlan);
 }
@@ -159,10 +160,7 @@ public class AuthService : IAuthService
         // Expiración de trial: solo se DESACTIVA el flag de expiración devolviendo
         // el resultado correspondiente; NO se borran datos como efecto colateral del login.
         if (cached.IsTrialExpired(now))
-        {
-            await _context.SaveChangesAsync();
             return new AuthResult(AuthOutcome.TrialExpired, user, cached.ToEntity());
-        }
 
         await _context.SaveChangesAsync();
         return new AuthResult(AuthOutcome.Success, user, cached.ToEntity());
@@ -173,6 +171,21 @@ public class AuthService : IAuthService
         email = NormalizeEmail(email);
         return await _context.ApplicationUsers
             .FirstOrDefaultAsync(u => u.Email == email && u.TenantId == tenantId);
+    }
+
+    public async Task<Tenant?> FindTenantByDomainAsync(string domain)
+    {
+        domain = domain.Trim().ToLowerInvariant();
+        // Caché corto: el selector de tenant se consulta en cada inicio de sesión hosted.
+        var key = $"tenant:domain:{domain}";
+        var cached = await _cache.GetAsync<TenantCacheEntry>(key);
+        if (cached is not null)
+            return cached.ToEntity();
+
+        var tenant = await _context.Tenants.FirstOrDefaultAsync(t => t.Domain == domain);
+        if (tenant is not null)
+            await _cache.SetAsync(key, TenantCacheEntry.From(tenant), TenantCacheTtl);
+        return tenant;
     }
 
     public Task<bool> IsTrialExpiredAsync(Guid tenantId) =>

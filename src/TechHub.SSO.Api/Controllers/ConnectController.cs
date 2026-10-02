@@ -27,7 +27,8 @@ public class ConnectController : Controller
         _applicationManager = applicationManager;
     }
 
-    // Requiere sesión iniciada (cookie). Si no la hay, el middleware redirige a LoginPath.
+    // Requiere sesión iniciada (cookie). Si no la hay, el middleware redirige a
+    // /account/login?returnurl=<authorize original>: el formulario vive SOLO aquí.
     [HttpGet("connect/authorize")]
     [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
     public async Task<IActionResult> Authorize()
@@ -38,6 +39,12 @@ public class ConnectController : Controller
         // La aplicación cliente debe existir (se siembra al arrancar la API).
         _ = await _applicationManager.FindByClientIdAsync(request.ClientId!)
             ?? throw new InvalidOperationException("La información de la aplicación es desconocida.");
+
+        if (string.Equals(request.Prompt, Prompts.None, StringComparison.OrdinalIgnoreCase))
+        {
+            // prompt=none: nunca se muestra UI; la respuesta viaja por el canal redirect.
+            return Forbid(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+        }
 
         // Reconstruir la identidad desde la sesión de cookie del usuario.
         var identity = new ClaimsIdentity(
@@ -60,8 +67,14 @@ public class ConnectController : Controller
         foreach (var claim in principal.Claims)
             claim.SetDestinations(GetDestinations(claim));
 
-        return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+        return SignIn(principal,
+            authenticationScheme: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+            properties: BuildAuthProperties(request));
     }
+
+    /// <summary>Preserva el state del cliente para el callback del authorization code.</summary>
+    private static AuthenticationProperties BuildAuthProperties(OpenIddictRequest request) =>
+        new() { Items = { ["state"] = request.State } };
 
     [HttpPost("connect/token"), Produces("application/json")]
     public async Task<IActionResult> Exchange()

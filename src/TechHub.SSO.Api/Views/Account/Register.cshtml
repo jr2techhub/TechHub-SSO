@@ -1,0 +1,54 @@
+@model TechHub.SSO.Api.Models.RegisterViewModel
+@{
+    ViewData["Title"] = "Crear organización";
+}
+
+<h1>Crear su organización en TechHub</h1>
+<p class="sub">Al registrarse se crea un tenant con 7 días de prueba y su cuenta de administrador.</p>
+
+@if (ViewData["Error"] is string error)
+{
+    <div class="error" role="alert">@error</div>
+}
+
+<form method="post" action="/account/register">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="ReturnUrl" />
+
+    <label asp-for="TenantName"></label>
+    <input type="text" asp-for="TenantName" autocomplete="organization" required maxlength="100" />
+    <span class="field-error">@Html.ValidationMessageFor(m => m.TenantName)</span>
+
+    <label asp-for="Domain"></label>
+    <input type="text" asp-for="Domain" autocomplete="url" placeholder="miempresa.com" required maxlength="100" />
+    <span class="field-error">@Html.ValidationMessageFor(m => m.Domain)</span>
+
+    <div class="row">
+        <div>
+            <label asp-for="FirstName"></label>
+            <input type="text" asp-for="FirstName" autocomplete="given-name" required maxlength="100" />
+            <span class="field-error">@Html.ValidationMessageFor(m => m.FirstName)</span>
+        </div>
+        <div>
+            <label asp-for="LastName"></label>
+            <input type="text" asp-for="LastName" autocomplete="family-name" required maxlength="100" />
+            <span class="field-error">@Html.ValidationMessageFor(m => m.LastName)</span>
+        </div>
+    </div>
+
+    <label asp-for="Email"></label>
+    <input type="email" asp-for="Email" autocomplete="username" required maxlength="256" />
+    <span class="field-error">@Html.ValidationMessageFor(m => m.Email)</span>
+
+    <label asp-for="Password"></label>
+    <input type="password" asp-for="Password" autocomplete="new-password" required minlength="8" maxlength="128" />
+    <span class="field-error">@Html.ValidationMessageFor(m => m.Password)</span>
+
+    <label asp-for="ConfirmPassword"></label>
+    <input type="password" asp-for="ConfirmPassword" autocomplete="new-password" required maxlength="128" />
+    <span class="field-error">@Html.ValidationMessageFor(m => m.ConfirmPassword)</span>
+
+    <button type="submit">Crear organización</button>
+</form>
+
+<p class="switch">¿Ya tiene cuenta? <a href="/account/login@(Model.ReturnUrl is null ? "" : "?returnurl=" + Uri.EscapeDataString(Model.ReturnUrl))">Iniciar sesión</a></p>
