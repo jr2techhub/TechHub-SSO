@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("TechHub.SSO.Core")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1e1e9fa340a96e44dac6dc3d7fcd47001c5a5073")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+cd1faee3859faa54e39d28a0fd789d2095f0a3cc")]
 [assembly: System.Reflection.AssemblyProductAttribute("TechHub.SSO.Core")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TechHub.SSO.Core")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

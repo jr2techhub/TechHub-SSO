@@ -181,6 +181,25 @@ public class AuthService : IAuthService
             .FirstOrDefaultAsync(u => u.Email == email && u.TenantId == tenantId);
     }
 
+    /// <summary>
+    /// Resuelve el usuario y su tenant a partir del email (login hosted multi-tenant).
+    /// El email es único globalmente (índice único en la BD), por lo que no hay ambigüedad.
+    /// Devuelve null sin revelar si el motivo es inexistencia (anti-enumeración: el
+    /// coste temporal se iguala con un hash dummy en ValidateCredentialsAsync).
+    /// </summary>
+    public async Task<(ApplicationUser User, Tenant Tenant)?> ResolveUserByGlobalEmailAsync(string email)
+    {
+        email = NormalizeEmail(email);
+        var user = await _context.ApplicationUsers
+            .Include(u => u.Tenant)
+            .FirstOrDefaultAsync(u => u.Email == email);
+
+        if (user?.Tenant is null)
+            return null;
+
+        return (user, user.Tenant);
+    }
+
     public async Task<Tenant?> FindTenantByDomainAsync(string domain)
     {
         domain = domain.Trim().ToLowerInvariant();
