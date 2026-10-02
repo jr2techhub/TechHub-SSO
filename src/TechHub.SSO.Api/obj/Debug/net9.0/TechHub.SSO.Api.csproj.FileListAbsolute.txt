@@ -1,0 +1,8 @@
+/workspace/src/TechHub.SSO.Api/obj/Debug/net9.0/TechHub.SSO.Api.csproj.AssemblyReference.cache
+/workspace/src/TechHub.SSO.Api/obj/Debug/net9.0/rpswa.dswa.cache.json
+/workspace/src/TechHub.SSO.Api/obj/Debug/net9.0/TechHub.SSO.Api.GeneratedMSBuildEditorConfig.editorconfig
+/workspace/src/TechHub.SSO.Api/obj/Debug/net9.0/TechHub.SSO.Api.AssemblyInfoInputs.cache
+/workspace/src/TechHub.SSO.Api/obj/Debug/net9.0/TechHub.SSO.Api.AssemblyInfo.cs
+/workspace/src/TechHub.SSO.Api/obj/Debug/net9.0/TechHub.SSO.Api.csproj.CoreCompileInputs.cache
+/workspace/src/TechHub.SSO.Api/obj/Debug/net9.0/TechHub.SSO.Api.MvcApplicationPartsAssemblyInfo.cs
+/workspace/src/TechHub.SSO.Api/obj/Debug/net9.0/TechHub.SSO.Api.MvcApplicationPartsAssemblyInfo.cache

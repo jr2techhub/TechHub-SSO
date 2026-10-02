@@ -1,5 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using TechHub.SSO.Api.Models;
+using TechHub.SSO.Api.Security;
 using TechHub.SSO.Api.Services;
+using TechHub.SSO.Core.Entities;
 
 namespace TechHub.SSO.Api.Controllers;
 
@@ -15,84 +19,63 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
+    [EnableRateLimiting("auth")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
-        var user = await _authService.RegisterAsync(
-            request.Email, 
-            request.Password, 
-            request.FirstName, 
-            request.LastName, 
-            request.TenantName, 
-            request.Domain);
+        var result = await _authService.RegisterAsync(
+            request.Email, request.Password, request.FirstName,
+            request.LastName, request.TenantName, request.Domain);
 
-        if (user == null)
-            return BadRequest(new { message = "El email ya está registrado" });
-
-        return Ok(new { 
-            message = "Registro exitoso. Tu cuenta de prueba está activa por 7 días.",
-            userId = user.Id,
-            trialEndsAt = DateTime.UtcNow.AddDays(7)
-        });
+        return result.Outcome switch
+        {
+            AuthOutcome.Success => Ok(new
+            {
+                message = "Registro exitoso. Tu cuenta de prueba está activa por 7 días.",
+                userId = result.User!.Id,
+                tenantId = result.Tenant!.Id,
+                trialEndsAt = result.Tenant.TrialEndDate
+            }),
+            AuthOutcome.DuplicateDomain => Conflict(new { message = "El dominio ya está registrado" }),
+            _ => Conflict(new { message = "El email ya está registrado en este tenant" })
+        };
     }
 
     [HttpPost("login")]
+    [EnableRateLimiting("auth")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        var isValid = await _authService.ValidateCredentialsAsync(request.Email, request.Password);
-        
-        if (!isValid)
-            return Unauthorized(new { message = "Credenciales inválidas o cuenta expirada" });
+        // Validación de credenciales scoped por tenant (multi-tenancy real).
+        // La emisión de tokens OAuth se realiza vía POST /connect/token (OpenIddict).
+        var result = await _authService.ValidateCredentialsAsync(
+            request.Email, request.TenantId, request.Password);
 
-        var user = await _authService.GetUserByEmailAsync(request.Email);
-        var tenant = await GetTenantByUserId(user!.Id); // Método auxiliar necesario
-        
-        // Aquí se generarían los tokens OpenIddict
-        // Por ahora retornamos información básica
-        return Ok(new {
+        if (!result.Succeeded)
+        {
+            // Mensaje genérico: no revelar si el usuario existe (anti-enumeración).
+            return Unauthorized(new { message = "Credenciales inválidas o acceso no permitido" });
+        }
+
+        var tenant = result.Tenant!;
+        return Ok(new
+        {
             message = "Login exitoso",
-            email = user.Email,
-            tenantId = user.TenantId,
-            isTrial = tenant.PlanType == "Trial",
+            email = result.User!.Email,
+            tenantId = tenant.Id,
+            isTrial = tenant.PlanType == PlanType.Trial,
             trialEndsAt = tenant.TrialEndDate
         });
     }
 
     [HttpPost("upgrade")]
+    [AuthorizeClient]
     public async Task<IActionResult> Upgrade([FromBody] UpgradeRequest request)
     {
+        // Protegido: solo un token de servicio válido puede cambiar planes.
         var success = await _authService.UpgradeTenantAsync(request.TenantId, request.NewPlan);
-        
+
         if (!success)
-            return BadRequest(new { message = "No se pudo actualizar el plan" });
+            return NotFound(new { message = "Tenant no encontrado" });
 
         return Ok(new { message = "Plan actualizado exitosamente" });
     }
-
-    private async Task<dynamic> GetTenantByUserId(Guid userId)
-    {
-        // Implementación simplificada - en producción usar inyección de DbContext
-        throw new NotImplementedException();
-    }
-}
-
-public class RegisterRequest
-{
-    public string Email { get; set; } = string.Empty;
-    public string Password { get; set; } = string.Empty;
-    public string FirstName { get; set; } = string.Empty;
-    public string LastName { get; set; } = string.Empty;
-    public string TenantName { get; set; } = string.Empty;
-    public string Domain { get; set; } = string.Empty;
-}
-
-public class LoginRequest
-{
-    public string Email { get; set; } = string.Empty;
-    public string Password { get; set; } = string.Empty;
-}
-
-public class UpgradeRequest
-{
-    public Guid TenantId { get; set; }
-    public string NewPlan { get; set; } = string.Empty;
 }
