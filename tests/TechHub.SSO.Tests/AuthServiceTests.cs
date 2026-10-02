@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using TechHub.SSO.Api.Data;
 using TechHub.SSO.Api.Services;
 using TechHub.SSO.Core.Entities;
@@ -18,7 +19,7 @@ public class AuthServiceTests : IDisposable
             .ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.InMemoryEventId.TransactionIgnoredWarning))
             .Options;
         _context = new SsoDbContext(options);
-        _service = new AuthService(_context);
+        _service = new AuthService(_context, new AuthCache(new MemoryCache(new MemoryCacheOptions())));
     }
 
     public void Dispose() => _context.Dispose();

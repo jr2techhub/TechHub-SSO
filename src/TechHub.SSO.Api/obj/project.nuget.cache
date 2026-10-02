@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "O2+j6Xlcq84=",
+  "dgSpecHash": "VF5H0JhswCc=",
   "success": true,
   "projectFilePath": "/workspace/src/TechHub.SSO.Api/TechHub.SSO.Api.csproj",
   "expectedPackageFiles": [
@@ -27,6 +27,7 @@
     "/root/.nuget/packages/microsoft.extensions.apidescription.server/6.0.5/microsoft.extensions.apidescription.server.6.0.5.nupkg.sha512",
     "/root/.nuget/packages/microsoft.extensions.caching.abstractions/9.0.0/microsoft.extensions.caching.abstractions.9.0.0.nupkg.sha512",
     "/root/.nuget/packages/microsoft.extensions.caching.memory/9.0.0/microsoft.extensions.caching.memory.9.0.0.nupkg.sha512",
+    "/root/.nuget/packages/microsoft.extensions.caching.stackexchangeredis/9.0.0/microsoft.extensions.caching.stackexchangeredis.9.0.0.nupkg.sha512",
     "/root/.nuget/packages/microsoft.extensions.configuration/8.0.0/microsoft.extensions.configuration.8.0.0.nupkg.sha512",
     "/root/.nuget/packages/microsoft.extensions.configuration.abstractions/9.0.0/microsoft.extensions.configuration.abstractions.9.0.0.nupkg.sha512",
     "/root/.nuget/packages/microsoft.extensions.configuration.binder/8.0.0/microsoft.extensions.configuration.binder.8.0.0.nupkg.sha512",
@@ -78,8 +79,10 @@
     "/root/.nuget/packages/openiddict.validation.dataprotection/5.2.0/openiddict.validation.dataprotection.5.2.0.nupkg.sha512",
     "/root/.nuget/packages/openiddict.validation.serverintegration/5.2.0/openiddict.validation.serverintegration.5.2.0.nupkg.sha512",
     "/root/.nuget/packages/openiddict.validation.systemnethttp/5.2.0/openiddict.validation.systemnethttp.5.2.0.nupkg.sha512",
+    "/root/.nuget/packages/pipelines.sockets.unofficial/2.2.8/pipelines.sockets.unofficial.2.2.8.nupkg.sha512",
     "/root/.nuget/packages/polly/7.2.4/polly.7.2.4.nupkg.sha512",
     "/root/.nuget/packages/polly.extensions.http/3.0.0/polly.extensions.http.3.0.0.nupkg.sha512",
+    "/root/.nuget/packages/stackexchange.redis/2.7.27/stackexchange.redis.2.7.27.nupkg.sha512",
     "/root/.nuget/packages/swashbuckle.aspnetcore/7.2.0/swashbuckle.aspnetcore.7.2.0.nupkg.sha512",
     "/root/.nuget/packages/swashbuckle.aspnetcore.swagger/7.2.0/swashbuckle.aspnetcore.swagger.7.2.0.nupkg.sha512",
     "/root/.nuget/packages/swashbuckle.aspnetcore.swaggergen/7.2.0/swashbuckle.aspnetcore.swaggergen.7.2.0.nupkg.sha512",

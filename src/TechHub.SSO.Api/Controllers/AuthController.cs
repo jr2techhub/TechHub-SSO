@@ -71,10 +71,10 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Upgrade([FromBody] UpgradeRequest request)
     {
         // Protegido: solo un token de servicio válido puede cambiar planes.
-        var success = await _authService.UpgradeTenantAsync(request.TenantId, request.NewPlan);
+        var success = await _authService.UpgradeTenantAsync(request.TenantId, (PlanType)request.NewPlan);
 
         if (!success)
-            return NotFound(new { message = "Tenant no encontrado" });
+            return BadRequest(new { message = "No se pudo actualizar el plan (tenant inexistente o plan no permitido)" });
 
         return Ok(new { message = "Plan actualizado exitosamente" });
     }
