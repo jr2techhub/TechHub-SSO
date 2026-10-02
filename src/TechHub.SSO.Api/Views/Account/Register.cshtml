@@ -1,6 +1,7 @@
 @model TechHub.SSO.Api.Models.RegisterViewModel
 @{
     ViewData["Title"] = "Crear organización";
+    var returnUrlQuery = Model.ReturnUrl is null ? "" : "?returnurl=" + Uri.EscapeDataString(Model.ReturnUrl);
 }
 
 <h1>Crear su organización en TechHub</h1>
@@ -11,44 +12,62 @@
     <div class="error" role="alert">@error</div>
 }
 
-<form method="post" action="/account/register">
+<form method="post" asp-action="Register">
     @Html.AntiForgeryToken()
     <input type="hidden" asp-for="ReturnUrl" />
 
-    <label asp-for="TenantName"></label>
-    <input type="text" asp-for="TenantName" autocomplete="organization" required maxlength="100" />
+    <label asp-for="TenantName">Nombre de la organización</label>
+    <input type="text" asp-for="TenantName" autocomplete="organization" required maxlength="100" placeholder="Mi Empresa S.L." />
     <span class="field-error">@Html.ValidationMessageFor(m => m.TenantName)</span>
 
-    <label asp-for="Domain"></label>
-    <input type="text" asp-for="Domain" autocomplete="url" placeholder="miempresa.com" required maxlength="100" />
+    <label asp-for="Domain">Dominio</label>
+    <input type="text" asp-for="Domain" autocomplete="url" required maxlength="100" placeholder="miempresa.com" />
+    <p class="hint">Será la dirección desde la que accederá a sus aplicaciones TechHub.</p>
     <span class="field-error">@Html.ValidationMessageFor(m => m.Domain)</span>
 
     <div class="row">
         <div>
-            <label asp-for="FirstName"></label>
+            <label asp-for="FirstName">Nombre</label>
             <input type="text" asp-for="FirstName" autocomplete="given-name" required maxlength="100" />
             <span class="field-error">@Html.ValidationMessageFor(m => m.FirstName)</span>
         </div>
         <div>
-            <label asp-for="LastName"></label>
+            <label asp-for="LastName">Apellidos</label>
             <input type="text" asp-for="LastName" autocomplete="family-name" required maxlength="100" />
             <span class="field-error">@Html.ValidationMessageFor(m => m.LastName)</span>
         </div>
     </div>
 
-    <label asp-for="Email"></label>
-    <input type="email" asp-for="Email" autocomplete="username" required maxlength="256" />
+    <label asp-for="Email">Email del administrador</label>
+    <input type="email" asp-for="Email" autocomplete="username" required maxlength="256" placeholder="admin@miempresa.com" />
     <span class="field-error">@Html.ValidationMessageFor(m => m.Email)</span>
 
-    <label asp-for="Password"></label>
-    <input type="password" asp-for="Password" autocomplete="new-password" required minlength="8" maxlength="128" />
+    <label asp-for="Password">Contraseña</label>
+    <input type="password" id="newPassword" asp-for="Password" autocomplete="new-password" required minlength="8" maxlength="128" placeholder="Mínimo 8 caracteres" aria-describedby="pwHint" />
+    <p class="hint" id="pwHint">Use al menos 8 caracteres. Recomendamos una frase de contraseña larga y única.</p>
     <span class="field-error">@Html.ValidationMessageFor(m => m.Password)</span>
 
-    <label asp-for="ConfirmPassword"></label>
-    <input type="password" asp-for="ConfirmPassword" autocomplete="new-password" required maxlength="128" />
+    <label asp-for="ConfirmPassword">Confirmar contraseña</label>
+    <input type="password" asp-for="ConfirmPassword" autocomplete="new-password" required maxlength="128" placeholder="Repita la contraseña" />
     <span class="field-error">@Html.ValidationMessageFor(m => m.ConfirmPassword)</span>
 
     <button type="submit">Crear organización</button>
 </form>
 
-<p class="switch">¿Ya tiene cuenta? <a href="/account/login@(Model.ReturnUrl is null ? "" : "?returnurl=" + Uri.EscapeDataString(Model.ReturnUrl))">Iniciar sesión</a></p>
+<p class="switch">¿Ya tiene cuenta? <a href="@($"/account/login{returnUrlQuery}")">Iniciar sesión</a></p>
+
+<script>
+  // Comprobación local (sin enviar nada al servidor) de que ambas contraseñas coinciden.
+  (function () {
+    var pw = document.getElementById('newPassword');
+    var confirm = document.querySelector('input[name="ConfirmPassword"]');
+    if (!pw || !confirm) return;
+    confirm.addEventListener('input', function () {
+      if (confirm.value !== pw.value) {
+        confirm.setCustomValidity('Las contraseñas no coinciden.');
+      } else {
+        confirm.setCustomValidity('');
+      }
+    });
+  })();
+</script>
