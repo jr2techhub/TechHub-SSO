@@ -1,8 +1,10 @@
-# .NET build artifacts
+# .NET Build Artifacts
 bin/
 obj/
 
-# IDE and editor files
+# IDE and Editor Files
 .vs/
-*.user
 *.suo
+*.user
+*.userosscache
+*.sln.docstates

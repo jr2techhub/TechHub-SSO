@@ -42,6 +42,10 @@ builder.Services.AddOpenIddict()
                .EnableLogoutEndpointPassthrough();
 
 #if DEBUG
+        // En desarrollo se permite HTTP para poder probar el flujo completo localmente.
+        // En producción esto NUNCA se habilita: OpenIddict exige HTTPS por defecto.
+        options.UseAspNetCore().DisableTransportSecurityRequirement();
+
         options.AddDevelopmentEncryptionCertificate()
                .AddDevelopmentSigningCertificate();
 #else
@@ -78,7 +82,14 @@ builder.Services
         options.SlidingExpiration = true;
         options.Cookie.Name = "techhub_sso_session";
         options.Cookie.HttpOnly = true;
+#if DEBUG
+        // En desarrollo (HTTP local) AllowOnlySecureCookies permitiría la cookie;
+        // Always la descartaría silenciosamente en el navegador y rompería el SSO.
+        // En producción se mantiene Always: la cookie solo viaja por HTTPS.
+        options.Cookie.SecurePolicy = CookieSecurePolicy.AllowOnlySecureCookies;
+#else
         options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+#endif
         // Anti-CSRF: SameSite=Lax es el valor correcto para flujos OIDC redirect-based
         // (la cookie viaja en GET de redirección pero NO en POSTs cross-site).
         options.Cookie.SameSite = SameSiteMode.Lax;

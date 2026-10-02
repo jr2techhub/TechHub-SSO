@@ -24,6 +24,9 @@ public interface IAuthService
 {
     Task<AuthResult> RegisterAsync(string email, string password, string firstName, string lastName, string tenantName, string domain);
     Task<AuthResult> ValidateCredentialsAsync(string email, Guid tenantId, string password);
+    /// <summary>Resuelve el tenant de un usuario por email (para el login hosted multi-tenant).
+    /// No revela existencia: devuelve null tanto si no existe como ante ambigüedad controlada.</summary>
+    Task<(ApplicationUser User, Tenant Tenant)?> ResolveUserByGlobalEmailAsync(string email);
     Task<ApplicationUser?> GetUserByEmailAsync(string email, Guid tenantId);
     Task<Tenant?> FindTenantByDomainAsync(string domain);
     Task<bool> IsTrialExpiredAsync(Guid tenantId);
@@ -59,49 +62,54 @@ public class AuthService : IAuthService
             return new AuthResult(AuthOutcome.DuplicateDomain);
 
         // Crear Tenant con trial de 7 días y su usuario admin en la misma transacción.
-        await using var transaction = await _context.Database.BeginTransactionAsync();
-
-        var tenant = new Tenant
+        // La estrategia de reintentos de Npgsql no admite transacciones iniciadas por el
+        // usuario fuera de un CreateExecutionStrategy(): envolver todo como unidad reintentable.
+        return await _context.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
         {
-            Id = Guid.NewGuid(),
-            Name = tenantName,
-            Domain = domain,
-            IsActive = true,
-            CreatedAt = DateTime.UtcNow,
-            TrialEndDate = DateTime.UtcNow.AddDays(TrialDays),
-            PlanType = PlanType.Trial
-        };
+            await using var transaction = await _context.Database.BeginTransactionAsync();
 
-        _context.Tenants.Add(tenant);
+            var tenant = new Tenant
+            {
+                Id = Guid.NewGuid(),
+                Name = tenantName,
+                Domain = domain,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                TrialEndDate = DateTime.UtcNow.AddDays(TrialDays),
+                PlanType = PlanType.Trial
+            };
 
-        var user = new ApplicationUser
-        {
-            Id = Guid.NewGuid(),
-            Email = email,
-            PasswordHash = PasswordHasher.Hash(password),
-            FirstName = firstName,
-            LastName = lastName,
-            TenantId = tenant.Id,
-            Roles = "admin",
-            IsEmailConfirmed = false,
-            CreatedAt = DateTime.UtcNow
-        };
+            _context.Tenants.Add(tenant);
 
-        _context.ApplicationUsers.Add(user);
+            var user = new ApplicationUser
+            {
+                Id = Guid.NewGuid(),
+                Email = email,
+                PasswordHash = PasswordHasher.Hash(password),
+                FirstName = firstName,
+                LastName = lastName,
+                TenantId = tenant.Id,
+                Roles = "admin",
+                IsEmailConfirmed = false,
+                CreatedAt = DateTime.UtcNow
+            };
 
-        try
-        {
-            await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
-        }
-        catch (DbUpdateException)
-        {
-            await transaction.RollbackAsync();
-            // Viola el índice único (TenantId, Email): email duplicado en ese tenant.
-            return new AuthResult(AuthOutcome.DuplicateEmail);
-        }
+            _context.ApplicationUsers.Add(user);
 
-        return new AuthResult(AuthOutcome.Success, user, tenant);
+            try
+            {
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+            catch (DbUpdateException)
+            {
+                await transaction.RollbackAsync();
+                // Viola el índice único (TenantId, Email): email duplicado en ese tenant.
+                return new AuthResult(AuthOutcome.DuplicateEmail);
+            }
+
+            return new AuthResult(AuthOutcome.Success, user, tenant);
+        });
     }
 
     public async Task<AuthResult> ValidateCredentialsAsync(string email, Guid tenantId, string password)

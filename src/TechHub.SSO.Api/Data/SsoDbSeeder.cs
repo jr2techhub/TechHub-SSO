@@ -23,7 +23,33 @@ public static class SsoDbSeeder
 
         await SeedTenantAsync(context, logger);
         await SeedApplicationsAsync(scope.ServiceProvider, logger);
+#if DEBUG
+        // En desarrollo también se permite el callback local HTTP de la SPA (ver README).
+        await EnsureDevRedirectUriAsync(scope.ServiceProvider, logger);
+#endif
     }
+
+#if DEBUG
+    private static async Task EnsureDevRedirectUriAsync(IServiceProvider services, ILogger logger)
+    {
+        var manager = services.GetRequiredService<IOpenIddictApplicationManager>();
+        if (await manager.FindByClientIdAsync("techhub-web") is not object app) return;
+
+        var devUri = new Uri("http://localhost:3000/callback");
+        var devLogoutUri = new Uri("http://localhost:3000/signout-callback-oidc");
+
+        var existing = await manager.GetRedirectUrisAsync(app);
+        if (!existing.Contains(devUri.ToString()))
+        {
+            await manager.UpdateAsync(app, descriptor =>
+            {
+                descriptor.RedirectUris.Add(devUri);
+                descriptor.PostLogoutRedirectUris.Add(devLogoutUri);
+            });
+            logger.LogInformation("Redirect URI de desarrollo añadido a techhub-web: {Uri}", devUri);
+        }
+    }
+#endif
 
     private static async Task SeedTenantAsync(SsoDbContext context, ILogger logger)
     {
